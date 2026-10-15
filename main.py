@@ -43,9 +43,9 @@ if __name__ == "__main__":
     options = vision.FaceLandmarkerOptions(
         base_options=base_options,
         num_faces=1,
-        min_face_detection_confidence=0.5,
-        min_face_presence_confidence=0.5,
-        min_tracking_confidence=0.5
+        min_face_detection_confidence=Config.MIN_FACE_CONFIDENCE,
+        min_face_presence_confidence=Config.MIN_FACE_CONFIDENCE,
+        min_tracking_confidence=Config.MIN_LANDMARK_CONFIDENCE
     )
     face_landmarker = vision.FaceLandmarker.create_from_options(options)
     
@@ -55,14 +55,35 @@ if __name__ == "__main__":
     alert_start_time = 0
 
     print("Đang khởi động camera...Vui lòng chờ")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(Config.CAMERA_INDEX)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, Config.FRAME_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Config.FRAME_HEIGHT)
+    cap.set(cv2.CAP_PROP_FPS, Config.TARGET_FPS)
 
     if not cap.isOpened():
         print("Không tìm thấy camera")
         
+    # tạo cửa sổ hiển thị trước để tránh lỗi getWindowProperty
+    cv2.namedWindow("DriveLinker Edge AI", cv2.WINDOW_NORMAL)
+
+    # warmup: bỏ qua các frame rỗng đầu tiên khi camera chưa kịp khởi động
+    print("Đang làm nóng camera...")
+    for _ in range(10):
+        cap.read()
+
+    failed_frame_count = 0
+    # chịu tối đa CAMERA_TIMEOUT giây * TARGET_FPS frame lỗi liên tiếp trước khi thoát
+    MAX_FAILED_FRAMES = int(Config.CAMERA_TIMEOUT * Config.TARGET_FPS)
+
     while cap.isOpened():
         ret, frame = cap.read()
-        if not ret: break
+        if not ret:
+            failed_frame_count += 1
+            if failed_frame_count >= MAX_FAILED_FRAMES:
+                print("Camera mất tín hiệu, dừng chương trình.")
+                break
+            continue  # bỏ qua frame rỗng, thử lại
+        failed_frame_count = 0  # reset khi đọc frame thành công
 
         # 1. pipeline yolo
         results = model(frame, verbose=False)
@@ -80,14 +101,24 @@ if __name__ == "__main__":
         
         if results_mp.face_landmarks:
             landmarks = results_mp.face_landmarks[0]
-            ear = calculate_ear(landmarks) 
-            mar = calculate_mar(landmarks) 
-            pitch_val = calculate_head_pitch(landmarks)  
-            
+
             if not is_alerting:
-                fatigue_manager.update_eyes(ear) 
-                fatigue_manager.update_mouth(mar) 
-                fatigue_manager.update_head(pitch_val) 
+                if Config.ENABLE_EYE_DETECTION:
+                    ear = calculate_ear(landmarks)
+                    fatigue_manager.update_eyes(ear)
+
+                if Config.ENABLE_YAWN_DETECTION:
+                    mar = calculate_mar(landmarks)
+                    fatigue_manager.update_mouth(mar)
+
+                if Config.ENABLE_HEAD_DETECTION:
+                    pitch_val = calculate_head_pitch(landmarks)
+                    fatigue_manager.update_head(pitch_val)
+
+        elif Config.ALERT_ON_FACE_MISSING:
+            # Không tìm thấy khuôn mặt — thông báo
+            cv2.putText(frame, "KHONG THAY KHUON MAT!", (20, 160),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
 
         # 3. lấy kết quả và render UI
         status, color, should_alert, violation_reason = fatigue_manager.get_status()
@@ -121,7 +152,7 @@ if __name__ == "__main__":
                 print(f"📸 ĐÃ CHỤP ẢNH BẰNG CHỨNG [{reason_text}]: {img_path}")
                 # =========================================
             else:
-                if current_loop_time - alert_start_time >= 10.0:
+                if current_loop_time - alert_start_time >= Config.ALERT_RESET_TIME:
                     if HAS_PYGAME and alert_sound: alert_sound.stop()
                     is_alerting = False
                     fatigue_manager.reset()
@@ -144,7 +175,7 @@ if __name__ == "__main__":
 
         # tắt hệ thống dứt điểm 
         key = cv2.waitKey(1) & 0xFF
-        if key == ord('q') or key == ord('Q') or key == 27 or cv2.getWindowProperty("DriveLinker Edge AI", cv2.WND_PROP_VISIBLE) < 1:
+        if key == ord('q') or key == ord('Q') or key == 27 or cv2.getWindowProperty("DriveLinker Edge AI", cv2.WND_PROP_VISIBLE) == 0:
             cap.release()
             cv2.destroyAllWindows()
             os._exit(0)

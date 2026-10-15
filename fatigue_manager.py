@@ -55,12 +55,12 @@ class FatigueManager:
                 self._evaluate_blink_speed(blink_duration)
 
     def _evaluate_blink_speed(self, duration):
-        # lọc nhiễu (<0.1s) và phân loại tốc độ chớp mắt
-        if 0.1 <= duration <= 0.5: # chớp mắt khỏe mạnh    
+        # lọc nhiễu (<NORMAL_BLINK_MIN_TIME) và phân loại tốc độ chớp mắt
+        if Config.NORMAL_BLINK_MIN_TIME <= duration <= Config.NORMAL_BLINK_MAX_TIME: # chớp mắt khỏe mạnh    
             self.score = max(0, self.score - Config.SCORE_RECOVERY) # hạ điểm 
             self.slow_blink_count = 0
-        elif 0.6 <= duration <= 1.0: # chớp mắt mệt mỏi 
-            self.score = max(self.score, 60) # đẩy trang thái tài xế lên mức điểm nguy hiểm, 60
+        elif Config.SLOW_BLINK_TIME <= duration <= Config.MICROSLEEP_TIME: # chớp mắt mệt mỏi 
+            self.score = max(self.score, Config.WARNING_LEVEL_2) # đẩy trạng thái tài xế lên mức điểm cảnh báo
             self.slow_blink_count += 1 # ghi nhận chớp mắt chậm
 
     def update_mouth(self, mar):
@@ -68,7 +68,7 @@ class FatigueManager:
         
         # reset chuỗi ngáp ngắn nếu đã qua thời gian cooldown
         # nếu quá 2p tài xế ko ngáp, hệ thống sẽ xóa và đưa về 0 và tắt cảnh báo 
-        if self.last_yawn_time and (current_time - self.last_yawn_time > Config.YAWN_COOLDOWN):
+        if self.last_yawn_time and (current_time - self.last_yawn_time > Config.YAWN_COUNT_WINDOW):
             self.light_yawn_count = 0
             self.last_yawn_time = 0
 
@@ -93,8 +93,8 @@ class FatigueManager:
                 self.light_yawn_count += 1
                 self.last_yawn_time = current_time
                 
-                # nếu 3 lần ngáp liên tiếp -> lên max điểm 
-                if self.light_yawn_count >= 3:
+                # nếu đủ số lần ngáp liên tiếp theo Config -> lên max điểm 
+                if self.light_yawn_count >= Config.YAWN_REPEAT_WARNING:
                     self.score = 100
                     self.light_yawn_count = 0
                     if not self.violation_reason: self.violation_reason = "NGAP LIEN TUC"
@@ -123,14 +123,14 @@ class FatigueManager:
 
     def get_status(self):
         # chốt điểm số và tính trạng thái 
-        self.score = max(0, min(100, self.score))
+        self.score = max(Config.SCORE_MIN, min(Config.SCORE_MAX, self.score))
         
-        # Đã cập nhật để trả về 4 biến
-        if self.score <= 30:
+        # Đã cập nhật để trả về 4 biến, ngưỡng lấy từ Config
+        if self.score < Config.WARNING_LEVEL_1:
             return "Normal", (0, 255, 0), False, ""
-        elif self.score <= 60:
+        elif self.score < Config.WARNING_LEVEL_2:
             return "Tired", (0, 255, 255), False, ""
-        elif self.score <= 80:
+        elif self.score < Config.WARNING_LEVEL_3:
             return "Warning", (0, 165, 255), False, ""
         else:
             return "Danger", (0, 0, 255), True, self.violation_reason
