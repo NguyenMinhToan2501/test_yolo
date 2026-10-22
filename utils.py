@@ -25,9 +25,10 @@ def calculate_ear(landmarks):
     # tính tỉ lệ dọc ngang cho từng mắt 
     ear_left = left_v / left_h if left_h > 0 else 0
     ear_right = right_v / right_h if right_h > 0 else 0
+    ear_avg = (ear_left + ear_right) / 2.0
 
-    # trả về tỉ lệ trung bình của cả 2 mắt 
-    return (ear_left + ear_right) / 2.0
+    # trả về tỉ lệ từng mắt và trung bình: (ear_left, ear_right, ear_avg)
+    return ear_left, ear_right, ear_avg
 
 # tính tỉ lệ há miệng 
 def calculate_mar(landmarks):
