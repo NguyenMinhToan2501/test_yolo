@@ -16,138 +16,329 @@ class FatigueManager:
         
         # mắt
         self.eye_closed_time = 0 # lưu lại thời gian tài xế nhắm mắt 
-        self.is_eye_closed = False # đánh dấu trạng thái mắt. false là đang mở, true là nhắm
+        self.is_eye_closed = False # đánh dấu trạng thái mắt: True là cả 2 mắt đang nhắm
         self.slow_blink_count = 0 # đếm số lần chớp mắt chậm liên tiếp 
+        self.is_sleeping = False # cờ đánh dấu đang ngủ gật (nhắm mắt >= 1.5s)
         
         # miệng
         self.yawn_start_time = 0 # lưu lại thời gian khi tài xế há miệng to
-        self.is_yawning = False # đánh dấu trạng thái miệng, như cái mắt zị 
-        self.light_yawn_count = 0 # bộ đếm số lần ngáp, nếu đạt mức 3 sẽ cảnh báo 
-        self.last_yawn_time = 0 # lưu lại mốc thời gian ngáp ngắn cuối cùng 
+        self.yawn_candidate_start = 0 # mốc thời gian bắt đầu vượt ngưỡng để lọc nhiễu
+        self.is_yawning = False # đánh dấu đang trong một đợt ngáp hợp lệ (đã đủ 1.5s)
+        self.yawn_alert_triggered = False # cờ chống lặp cảnh báo ngáp bất tận
+        self.confirmed_yawns = [] # danh sách timestamps các lần ngáp đã xác nhận trong 120s
+        self.last_yawn_time = 0 # lưu lại mốc thời gian ngáp cuối cùng 
 
-        # đầu
-        self.head_drop_start_time = 0 
+       # đầu
+        self.head_drop_start_time = 0
+        self.head_open_start_time = None
+        self.head_closed_start_time = None
         self.is_head_dropped = False
+        self.is_head_open_eyes = False
+        self.is_head_closed_eyes = False
+        self.is_active_head_drop = False
 
-    def update_eyes(self, ear):
-        current_time = time.time()
+        # cơ chế giảm điểm (decay) thời gian thực
+        now = time.time()
+        self.last_safe_time = now
+        self.last_decay_time = now
+
+    @property
+    def is_active_hazard(self):
+        """Trả về True nếu ngay tại thời điểm này tài xế đang ngủ gật hoặc đang gục đầu nhắm mắt."""
+        return self.is_sleeping or self.is_active_head_drop
+
+    def update_eyes(self, ear_data, current_time=None):
+        """
+        Nhận ear_data: tuple (ear_left, ear_right, ear_avg) hoặc float đơn lẻ.
+        Hiển thị thời gian nhắm mắt từng 0.1s (VD: NHAM MAT (0.5s), NHAM MAT (1.2s)...).
+        Đúng 1.5s kích hoạt ngay NGU GAT (1.5s) và hú còi.
+        """
+        if current_time is None:
+            current_time = time.time()
         
-        # trường hợp 1: tài xế nhắm mắt 
-        if ear < Config.EAR_CLOSED:
+        if isinstance(ear_data, (tuple, list)):
+            ear_left, ear_right, ear_avg = ear_data[0], ear_data[1], ear_data[2]
+        else:
+            ear_left = ear_right = ear_avg = ear_data
+
+        # QUY TẮC: CẢ HAI MẮT ĐỀU PHẢI NHẮM (< EAR_CLOSED)
+        both_eyes_closed = (ear_left < Config.EAR_CLOSED) and (ear_right < Config.EAR_CLOSED)
+        
+        # trường hợp 1: cả hai mắt đang nhắm
+        if both_eyes_closed:
             if not self.is_eye_closed:
                 self.is_eye_closed = True
-                self.eye_closed_time = current_time # ghi nhớ thời gian bắt đầu nhắm 
-            
-            # mắt vẫn đang nhắm 
+                self.eye_closed_time = current_time
+                self.violation_reason = "NHAM MAT (0.0s)"
             else:
-                # bắt sự kiện ngủ gật
-                if (current_time - self.eye_closed_time) > Config.MICROSLEEP_TIME:
-                    self.score = 100 # phạt 100 điểm để còi réo lên
-                    # ghi nhận lý do 
-                    if not self.violation_reason: self.violation_reason = "NGU GAT (NHAM MAT)"
+                duration = current_time - self.eye_closed_time
+                # Hiển thị số giây nhắm mắt chạy liên tục theo thời gian thực
+                if duration < Config.MICROSLEEP_TIME:
+                    self.violation_reason = f"NHAM MAT ({duration:.1f}s)"
+                else:
+                    # Đúng 1.5s là kích hoạt báo động ngủ gật ngay lập tức
+                    self.is_sleeping = True
+                    self.score = 100
+                    self.violation_reason = f"NGU GAT ({duration:.1f}s)"
                     
-        # trường hơp 2: tài xế mở mắt 
+        # trường hợp 2: có ít nhất một bên mắt mở (hoặc cả 2 mắt mở bình thường)
         else:
             if self.is_eye_closed:
-                # kết thúc 1 chu kỳ chớp mắt
                 blink_duration = current_time - self.eye_closed_time
                 self.is_eye_closed = False
-                self._evaluate_blink_speed(blink_duration)
+                
+                # NẾU VỪA MỞ MẮT SAU KHI BỊ BÁO ĐỘNG NGỦ GẬT:
+                if self.is_sleeping:
+                    self.is_sleeping = False
+                    self.score = Config.WARNING_LEVEL_1 # hạ ngay về 30 để còi tắt tức thì
+                    self.violation_reason = "DA MO MAT"
+                else:
+                    self._evaluate_blink_speed(blink_duration)
 
     def _evaluate_blink_speed(self, duration):
-        # lọc nhiễu (<NORMAL_BLINK_MIN_TIME) và phân loại tốc độ chớp mắt
-        if Config.NORMAL_BLINK_MIN_TIME <= duration <= Config.NORMAL_BLINK_MAX_TIME: # chớp mắt khỏe mạnh    
-            self.score = max(0, self.score - Config.SCORE_RECOVERY) # hạ điểm 
+        # Lọc và đánh giá tốc độ chớp mắt siêu nhạy
+        if Config.NORMAL_BLINK_MIN_TIME <= duration <= Config.NORMAL_BLINK_MAX_TIME:
+            # chớp mắt khỏe mạnh tự nhiên: trừ ngay 5 điểm hồi phục
+            self.score = max(0, self.score - Config.SCORE_RECOVERY)
             self.slow_blink_count = 0
-        elif Config.SLOW_BLINK_TIME <= duration <= Config.MICROSLEEP_TIME: # chớp mắt mệt mỏi 
-            self.score = max(self.score, Config.WARNING_LEVEL_2) # đẩy trạng thái tài xế lên mức điểm cảnh báo
-            self.slow_blink_count += 1 # ghi nhận chớp mắt chậm
+            if self.score <= Config.WARNING_LEVEL_1 and (self.violation_reason.startswith("DA ") or self.violation_reason.startswith("NHAM")):
+                self.violation_reason = ""
+        elif Config.SLOW_BLINK_TIME <= duration < Config.MICROSLEEP_TIME:
+            # chớp mắt chậm mệt mỏi: cộng SCORE_SLOW_BLINK (20 điểm) và hiển thị thời lượng
+            self.score = min(Config.SCORE_MAX, self.score + Config.SCORE_SLOW_BLINK)
+            self.slow_blink_count += 1
+            self.violation_reason = f"CHOP MAT CHAM ({duration:.2f}s)"
 
-    def update_mouth(self, mar):
-        current_time = time.time()
+    def update_mouth(self, mar, current_time=None):
+        """
+        Nhận tỉ lệ mở miệng MAR:
+        - Đang há miệng chưa đủ 1.5s: hiển thị DANG NGAP (x.xs) để người dùng thấy thời gian thực.
+        - Đủ đúng 1.5s: Kích hoạt cảnh báo NGAP ngay lập tức!
+        - Ngậm miệng lại: tắt cảnh báo tức thì.
+        """
+        if current_time is None:
+            current_time = time.time()
         
-        # reset chuỗi ngáp ngắn nếu đã qua thời gian cooldown
-        # nếu quá 2p tài xế ko ngáp, hệ thống sẽ xóa và đưa về 0 và tắt cảnh báo 
-        if self.last_yawn_time and (current_time - self.last_yawn_time > Config.YAWN_COUNT_WINDOW):
-            self.light_yawn_count = 0
-            self.last_yawn_time = 0
+        self.confirmed_yawns = [t for t in self.confirmed_yawns if (current_time - t) <= Config.YAWN_COUNT_WINDOW]
 
-        # mức 3: ngáp sâu
+        # mức ngáp (sâu hoặc nhẹ)
         if mar > Config.MAR_DEEP_YAWN:
-            if not self.is_yawning:
-                self.is_yawning = True
-                self.yawn_start_time = current_time # ghi lại thời điểm ngáp 
-
-            # nếu ngáp quá to liên tục quá 3s -> lên max điểm 
-            elif (current_time - self.yawn_start_time) > Config.DEEP_YAWN_TIME:
-                self.score = 100
-                if not self.violation_reason: self.violation_reason = "NGAP SAU"
-        # mức 2: ngáp nhẹ        
-        elif mar > Config.MAR_LIGHT_YAWN:
-            if not self.is_yawning:
-                self.is_yawning = True
-                self.yawn_start_time = current_time
-
-                # phát hiện ngáp nhẹ -> lên 40 điểm 
-                self.score = min(100, self.score + Config.SCORE_LIGHT_YAWN)
-                self.light_yawn_count += 1
-                self.last_yawn_time = current_time
+            if self.yawn_candidate_start == 0:
+                self.yawn_candidate_start = current_time
+            elapsed = current_time - self.yawn_candidate_start
+            
+            if elapsed < Config.LIGHT_YAWN_MIN_TIME:
+                self.violation_reason = f"DANG NGAP ({elapsed:.1f}s)"
+            else:
+                # Đủ 1.5s là kích hoạt cảnh báo ngay!
+                if not self.is_yawning:
+                    self.is_yawning = True
+                    self.yawn_alert_triggered = False
+                    self.score = max(self.score, 60)
+                    self.confirmed_yawns.append(current_time)
                 
-                # nếu đủ số lần ngáp liên tiếp theo Config -> lên max điểm 
-                if self.light_yawn_count >= Config.YAWN_REPEAT_WARNING:
-                    self.score = 100
-                    self.light_yawn_count = 0
-                    if not self.violation_reason: self.violation_reason = "NGAP LIEN TUC"
-        # mức 1: nói chuyện bth            
+                if elapsed >= Config.DEEP_YAWN_TIME:
+                    self.score = min(Config.SCORE_MAX, self.score + Config.SCORE_DEEP_YAWN)
+                    self.violation_reason = f"NGAP SAU ({elapsed:.1f}s)"
+                else:
+                    self.violation_reason = f"NGAP ({elapsed:.1f}s)"
+
+        elif mar > Config.MAR_LIGHT_YAWN:
+            if self.yawn_candidate_start == 0:
+                self.yawn_candidate_start = current_time
+            elapsed = current_time - self.yawn_candidate_start
+
+            if elapsed < Config.LIGHT_YAWN_MIN_TIME:
+                self.violation_reason = f"DANG NGAP ({elapsed:.1f}s)"
+            else:
+                # Đủ đúng 1.5s là cảnh báo ngay lập tức!
+                if not self.is_yawning:
+                    self.is_yawning = True
+                    self.yawn_alert_triggered = False
+                    self.score = max(self.score, 60)
+                    self.confirmed_yawns.append(current_time)
+                    
+                    if len(self.confirmed_yawns) >= Config.YAWN_REPEAT_WARNING:
+                        self.score = 100
+                        self.violation_reason = "NGAP LIEN TUC"
+                    else:
+                        self.violation_reason = f"NGAP ({elapsed:.1f}s)"
+                else:
+                    if len(self.confirmed_yawns) >= Config.YAWN_REPEAT_WARNING:
+                        self.violation_reason = "NGAP LIEN TUC"
+                    else:
+                        self.violation_reason = f"NGAP ({elapsed:.1f}s)"
+
+        # miệng đóng lại / nói chuyện bình thường
         else:
-            # khẩu hình miệng dưới ngưỡng ngáp, đánh dấu là ko ngáp - ko cộng điểm 
-            self.is_yawning = False
+            if self.is_yawning:
+                # TÀI XẾ ĐÃ NGẬM MIỆNG LẠI:
+                self.is_yawning = False
+                self.yawn_alert_triggered = True
+                self.score = min(self.score, 30) # hạ điểm an toàn
+                self.violation_reason = "DA HET NGAP"
+            elif self.violation_reason.startswith("DANG NGAP"):
+                self.violation_reason = ""
+            self.yawn_candidate_start = 0
+    def update_head(self, pitch_angle, current_time=None):
+        if current_time is None:
+            current_time = time.time()
 
-    # trạng thái gục đầu
-    def update_head(self, pitch_angle):
-        current_time = time.time()
-
-        # nếu góc đầu cúi quá 25 độ 
         if pitch_angle > Config.HEAD_DROP_ANGLE:
             if not self.is_head_dropped:
-                self.is_head_dropped = True  
-                self.head_drop_start_time = current_time 
-            else:
-                # nếu giữ tư thế quá 2s -> cảnh báo nguy hiểm
-                if (current_time - self.head_drop_start_time) > Config.HEAD_DROP_TIME:
-                    self.score = 100
-                    if not self.violation_reason: self.violation_reason = "GUC DAU"
-        else:
-            self.is_head_dropped = False
+                self.is_head_dropped = True
+                self.head_drop_start_time = current_time
 
+            if self.is_eye_closed:
+                self.update_head_closed_eyes(current_time)
+            else:
+                self.update_head_open_eyes(current_time)
+        else:
+            was_head_dropped = (
+                self.is_head_dropped or self.is_active_head_drop
+            )
+
+            self.head_drop_start_time = 0
+            self.head_open_start_time = None
+            self.head_closed_start_time = None
+
+            self.is_head_dropped = False
+            self.is_head_open_eyes = False
+            self.is_head_closed_eyes = False
+            self.is_active_head_drop = False
+
+            if was_head_dropped and not self.is_sleeping:
+                self.score = min(self.score, 25)
+                self.violation_reason = "DA NGAN DAU"
+
+    def update_head_open_eyes(self, current_time=None):
+        if current_time is None:
+            current_time = time.time()
+
+        if self.head_open_start_time is None:
+            self.head_open_start_time = current_time
+
+        self.head_closed_start_time = None
+
+        self.is_head_open_eyes = True
+        self.is_head_closed_eyes = False
+        self.is_active_head_drop = False
+
+        elapsed = current_time - self.head_open_start_time
+
+        self.violation_reason = (
+            f"CUI DAU - MAT MO ({elapsed:.1f}s)"
+        )
+
+        if not self.is_sleeping:
+            self.score = min(self.score, 30)
+
+    def update_head_closed_eyes(self, current_time=None):
+        if current_time is None:
+            current_time = time.time()
+
+        if self.head_closed_start_time is None:
+            self.head_closed_start_time = current_time
+
+        self.head_open_start_time = None
+
+        self.is_head_open_eyes = False
+        self.is_head_closed_eyes = True
+
+        elapsed = current_time - self.head_closed_start_time
+
+        if elapsed >= Config.HEAD_EYES_CLOSED_TIME:
+            self.is_active_head_drop = True
+            self.score = 100
+
+            self.violation_reason = (
+                f"GUC DAU (NHAM MAT) ({elapsed:.1f}s)"
+            )
+        else:
+            self.is_active_head_drop = False
+
+            if not self.is_sleeping:
+                self.violation_reason = (
+                    f"CUI DAU - NHAM MAT ({elapsed:.1f}s)"
+                )
+
+    def on_face_lost(self, current_time=None):
+      """Xử lý khi mất dấu khuôn mặt."""
+      self.head_drop_start_time = 0
+      self.head_open_start_time = None
+      self.head_closed_start_time = None
+
+      self.is_head_dropped = False
+      self.is_head_open_eyes = False
+      self.is_head_closed_eyes = False
+      self.is_active_head_drop = False
+
+    def apply_decay(self, current_time=None):
+         """Giảm dần điểm số theo thời gian thực."""
+         if current_time is None:
+            current_time = time.time()
+
+         if (not self.is_eye_closed and not self.is_sleeping and
+            not self.is_yawning and not self.is_active_head_drop
+            and not self.is_head_dropped):
+
+            elapsed = current_time - self.last_decay_time
+
+            if elapsed >= Config.SCORE_DECAY_INTERVAL:
+                steps = int(elapsed / Config.SCORE_DECAY_INTERVAL)
+
+                self.score = max(
+                    Config.SCORE_MIN,
+                    self.score - steps * Config.SCORE_DECAY_AMOUNT
+                )
+
+                self.last_decay_time = current_time
+
+                if (self.score <= Config.WARNING_LEVEL_1
+                    and self.violation_reason.startswith("DA ")):
+                    self.violation_reason = ""
 
     def get_status(self):
-        # chốt điểm số và tính trạng thái 
+        # chốt điểm số trong khoảng 0-100
         self.score = max(Config.SCORE_MIN, min(Config.SCORE_MAX, self.score))
         
-        # Đã cập nhật để trả về 4 biến, ngưỡng lấy từ Config
+        # Xác định trạng thái cảnh báo
+        should_alert = False
+        if self.is_active_hazard:
+            should_alert = True
+        elif self.is_yawning and not self.yawn_alert_triggered:
+            should_alert = True
+        elif self.score >= Config.WARNING_LEVEL_3:
+            should_alert = True
+
+        # Đánh giá cấp độ cảnh báo
         if self.score < Config.WARNING_LEVEL_1:
-            return "Normal", (0, 255, 0), False, ""
+            return "Normal", (0, 255, 0), should_alert, self.violation_reason
         elif self.score < Config.WARNING_LEVEL_2:
-            return "Tired", (0, 255, 255), False, ""
+            return "Tired", (0, 255, 255), should_alert, self.violation_reason
         elif self.score < Config.WARNING_LEVEL_3:
-            return "Warning", (0, 165, 255), False, ""
+            return "Warning", (0, 165, 255), should_alert, self.violation_reason
         else:
-            return "Danger", (0, 0, 255), True, self.violation_reason
+            return "Danger", (0, 0, 255), should_alert, self.violation_reason
 
     def reset(self):
-        # reset toàn bộ điểm số và trạng thái về 0 sau khi kêu còi 10s
+        """Reset trạng thái và điểm về 0 khi kết thúc hoàn toàn phiên vi phạm."""
         self.score = 0
-        self.violation_reason = "" # reset lý do khi chụp ảnh bằng chứng 
+        self.violation_reason = ""
 
         self.eye_closed_time = 0
         self.is_eye_closed = False
         self.slow_blink_count = 0
+        self.is_sleeping = False
         
         self.yawn_start_time = 0
+        self.yawn_candidate_start = 0
         self.is_yawning = False
-        self.light_yawn_count = 0
+        self.yawn_alert_triggered = False
+        self.confirmed_yawns = []
         self.last_yawn_time = 0
         
         self.head_drop_start_time = 0
+        self.head_closed_start_time = None
         self.is_head_dropped = False
+        self.is_active_head_drop = False

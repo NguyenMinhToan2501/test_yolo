@@ -29,9 +29,9 @@ class Config:
     EAR_CLOSED = 0.25                # EAR <= 0.25: xác định mắt đang nhắm
     EAR_HALF_CLOSED = 0.30           # 0.25 < EAR <= 0.30: mắt mở một phần, có thể đang lờ đờ
 
-    NORMAL_BLINK_MIN_TIME = 0.10     # Thời gian chớp mắt tối thiểu 0.1 giây để tham khảo và lọc nhiễu
-    NORMAL_BLINK_MAX_TIME = 0.40     # Chớp mắt kéo dài tối đa 0.4 giây được xem là bình thường theo ngưỡng thử nghiệm
-    SLOW_BLINK_TIME = 0.50           # Nhắm rồi mở mắt từ 0.5 giây: nghi ngờ chớp mắt chậm
+    NORMAL_BLINK_MIN_TIME = 0.08     # Thời gian chớp mắt tối thiểu 0.08 giây để lọc nhiễu
+    NORMAL_BLINK_MAX_TIME = 0.30     # Chớp mắt kéo dài tối đa 0.30 giây được xem là bình thường
+    SLOW_BLINK_TIME = 0.32           # Nhắm rồi mở mắt từ 0.32 giây: nhận diện chớp mắt chậm (siêu nhạy)
 
     MICROSLEEP_TIME = 1.50           # Mắt nhắm liên tục 1.5 giây: kích hoạt cảnh báo nghi ngờ ngủ gật
     SEVERE_EYE_CLOSED_TIME = 2.00    # Mắt nhắm liên tục 2 giây: kích hoạt cảnh báo nguy hiểm
@@ -64,9 +64,9 @@ class Config:
     # 4. HEAD POSE - NHẬN DIỆN TƯ THẾ ĐẦU VÀ CỔ
     # ==========================================================
 
-    HEAD_DROP_ANGLE = 25.0           # Đầu cúi xuống từ 25 độ so với tư thế đầu chuẩn
+    HEAD_DROP_ANGLE = 15.0           # Đầu cúi xuống từ 15 độ so với tư thế đầu chuẩn
     HEAD_DROP_TIME = 2.0             # Đầu cúi liên tục 2 giây: ghi nhận một sự kiện gục đầu
-
+    HEAD_EYES_CLOSED_TIME = MICROSLEEP_TIME
     HEAD_NOD_MIN_TIME = 0.30         # Thời gian tối thiểu của một chu kỳ gật đầu: 0.3 giây
     HEAD_NOD_MAX_TIME = 2.00         # Thời gian tối đa của một chu kỳ gật đầu: 2 giây
 
@@ -98,14 +98,14 @@ class Config:
     SCORE_LIGHT_YAWN = 40            # Cộng 40 điểm khi xác nhận một lần ngáp nhẹ
     SCORE_DEEP_YAWN = 60             # Cộng 60 điểm khi xác nhận một lần ngáp sâu
 
-    SCORE_SLOW_BLINK = 10            # Cộng 10 điểm cho một lần chớp mắt chậm bất thường
+    SCORE_SLOW_BLINK = 20            # Cộng 20 điểm cho một lần chớp mắt chậm bất thường (siêu nhạy)
     SCORE_REPEATED_YAWN = 15         # Cộng thêm 15 điểm khi đạt điều kiện ngáp lặp lại
     SCORE_HEAD_NOD = 20              # Cộng 20 điểm cho một chu kỳ gật đầu bất thường
     SCORE_HEAD_DROP = 45             # Cộng 45 điểm khi phát hiện một sự kiện gục đầu
 
-    SCORE_DECAY_INTERVAL = 10.0      # Cứ 10 giây tỉnh táo ổn định thì xét giảm điểm một lần
-    SCORE_DECAY_AMOUNT = 3           # Mỗi lần đủ điều kiện phục hồi sẽ trừ 3 điểm buồn ngủ
-    SCORE_RECOVERY = 5               # Trừ 5 điểm khi tài xế chớp mắt bình thường (tốc độ khỏe mạnh)
+    SCORE_DECAY_INTERVAL = 0.5       # Giảm điểm nhanh chóng mỗi 0.5 giây theo thời gian thực
+    SCORE_DECAY_AMOUNT = 3           # Mỗi 0.5 giây giảm 3 điểm (tương đương 6 điểm/giây, điểm tụt nhanh)
+    SCORE_RECOVERY = 5               # Trừ ngay 5 điểm cho mỗi lần chớp mắt bình thường (hồi phục nhạy)
 
 
     # ==========================================================
@@ -117,8 +117,13 @@ class Config:
     WARNING_LEVEL_3 = 85             # Điểm từ 85 trở lên: cảnh báo mức 3 (nguy hiểm)
 
     WARNING_CONFIRM_TIME = 1.0       # Điểm vượt ngưỡng liên tục 1 giây mới xác nhận cảnh báo thông thường
-    WARNING_REPEAT_INTERVAL = 10.0   # Nếu nguy cơ vẫn tồn tại, có thể nhắc lại cảnh báo sau 10 giây
-    ALERT_RESET_TIME = 10.0          # Thời gian báo động kéo dài (giây) trước khi tự động reset và ghi nhận lại
+    WARNING_REPEAT_INTERVAL = 5.0    # Nếu nguy cơ vẫn tồn tại, nhắc lại cảnh báo sau 5 giây (thay vì 10s)
+    ALERT_RESET_TIME = 3.0           # Thời gian báo động tối đa mỗi đợt giảm xuống 3 giây (thay vì 10s)
+    ALERT_MAX_DURATION = 3.0         # Còi hú tối đa 3 giây cho mỗi đợt cảnh báo nếu nguy cơ chưa dứt
+    ALERT_COOLDOWN = 1.0             # Khoảng nghỉ tối thiểu giữa các đợt cảnh báo
+    ALERT_AUTO_DISMISS = True        # Tự động TẮT CÒI NGAY khi tài xế mở mắt, ngẩng đầu hoặc ngậm miệng
+    YAWN_ALERT_DURATION = 1.5        # Thời gian cảnh báo ngáp chỉ 1.5 giây (nhắc nhở ngắn, không réo còi dai)
+    DISMISS_BUFFER_TIME = 0.2        # Độ trễ tắt còi 0.2s sau khi mở mắt/ngậm miệng để chống chập chờn
 
 
     # ==========================================================

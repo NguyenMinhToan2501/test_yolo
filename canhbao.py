@@ -1,3 +1,4 @@
+# pyrefly: ignore[missing-import]
 from gtts import gTTS
 
 print("Đang tổng hợp giọng nói AI. Vui lòng chờ")
