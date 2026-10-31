@@ -44,19 +44,18 @@ class Config:
 
 
     # ==========================================================
-    # 3. MOUTH DETECTION - NHẬN DIỆN MIỆNG VÀ NGÁP
+    # 3. MOUTH DETECTION - NHẬN DIỆN MIỆNG VÀ NGÁP (CHỈ CÒN NGÁP SÂU)
     # ==========================================================
 
-    MAR_LIGHT_YAWN = 0.70            # MAR >= 0.70: miệng mở lớn, bắt đầu theo dõi khả năng ngáp
-    MAR_DEEP_YAWN = 0.85             # MAR >= 0.85: miệng mở rất lớn, là dấu hiệu ứng viên ngáp sâu
+    MAR_LIGHT_YAWN = 0.70            # MAR >= 0.70: ngưỡng xác định miệng mở ở mức ngáp sâu
+    MAR_DEEP_YAWN = 0.70             # Đồng bộ ngưỡng ngáp sâu (không còn ngáp nhẹ)
+    YAWN_CONFIRM_TIME = 3.00         # Ngáp ở mức >= 0.70 kéo dài trên 3 giây mới bị tính điểm phạt
+    LIGHT_YAWN_MIN_TIME = 3.00       # Đồng bộ thời gian xác nhận ngáp: 3.0 giây
+    DEEP_YAWN_TIME = 3.00            # Hành vi ngáp kéo dài trên 3 giây
 
-    LIGHT_YAWN_MIN_TIME = 1.50       # Miệng mở đủ lớn trong 1.5 giây: ứng viên ngáp nhẹ
-    DEEP_YAWN_TIME = 3.00            # Hành vi ngáp kéo dài 3 giây: ứng viên ngáp sâu
-
-    YAWN_COUNT_WINDOW = 120.0        # Theo dõi tổng số lần ngáp trong 120 giây gần nhất
-    YAWN_REPEAT_WARNING = 3          # Ngáp ít nhất 3 lần trong 120 giây: cảnh báo ngáp liên tục
-
-    YAWN_EVENT_GAP = 1.00            # Miệng đóng rồi mở lại trong <= 1 giây: có thể gộp thành cùng một lần ngáp
+    YAWN_COUNT_WINDOW = 600.0        # Theo dõi tổng số lần ngáp trong 600 giây (10 phút)
+    YAWN_REPEAT_WARNING = 5          # Ngáp ít nhất 5 lần trong 600 giây: cảnh báo liên tục
+    YAWN_EVENT_GAP = 0.00            # Miệng đóng rồi mở lại trong <= 0 giây
     YAWN_SCORE_COOLDOWN = 5.0        # Chờ ít nhất 5 giây trước khi cộng điểm cho một sự kiện ngáp mới
 
 
@@ -66,7 +65,7 @@ class Config:
 
     HEAD_DROP_ANGLE = 15.0           # Đầu cúi xuống từ 15 độ so với tư thế đầu chuẩn
     HEAD_DROP_TIME = 2.0             # Đầu cúi liên tục 2 giây: ghi nhận một sự kiện gục đầu
-    HEAD_EYES_CLOSED_TIME = MICROSLEEP_TIME
+    HEAD_EYES_CLOSED_TIME = 0.70     # Cúi đầu nhắm mắt liên tục 0.7 giây: kích hoạt cảnh báo đỏ ngay
     HEAD_NOD_MIN_TIME = 0.30         # Thời gian tối thiểu của một chu kỳ gật đầu: 0.3 giây
     HEAD_NOD_MAX_TIME = 2.00         # Thời gian tối đa của một chu kỳ gật đầu: 2 giây
 
@@ -95,10 +94,11 @@ class Config:
     SCORE_MIN = 0                    # Điểm buồn ngủ thấp nhất là 0
     SCORE_MAX = 100                  # Điểm buồn ngủ cao nhất là 100
 
-    SCORE_LIGHT_YAWN = 40            # Cộng 40 điểm khi xác nhận một lần ngáp nhẹ
-    SCORE_DEEP_YAWN = 60             # Cộng 60 điểm khi xác nhận một lần ngáp sâu
+    SCORE_YAWN = 60                  # Khi ngáp ở mức 0.70 trên 3s thì bị tính 60 điểm (cảnh báo vàng)
+    SCORE_LIGHT_YAWN = 60            # Đồng bộ điểm ngáp: 60 điểm
+    SCORE_DEEP_YAWN = 60             # Đồng bộ điểm ngáp: 60 điểm
 
-    SCORE_SLOW_BLINK = 20            # Cộng 20 điểm cho một lần chớp mắt chậm bất thường (siêu nhạy)
+    SCORE_SLOW_BLINK = 60            # Chớp mắt chậm tính là 60 điểm (tương đương cảnh báo vàng)
     SCORE_REPEATED_YAWN = 15         # Cộng thêm 15 điểm khi đạt điều kiện ngáp lặp lại
     SCORE_HEAD_NOD = 20              # Cộng 20 điểm cho một chu kỳ gật đầu bất thường
     SCORE_HEAD_DROP = 45             # Cộng 45 điểm khi phát hiện một sự kiện gục đầu
@@ -113,8 +113,13 @@ class Config:
     # ==========================================================
 
     WARNING_LEVEL_1 = 30             # Điểm từ 30 đến dưới 60: cảnh báo mức 1
-    WARNING_LEVEL_2 = 60             # Điểm từ 60 đến dưới 85: cảnh báo mức 2
-    WARNING_LEVEL_3 = 85             # Điểm từ 85 trở lên: cảnh báo mức 3 (nguy hiểm)
+    WARNING_LEVEL_2 = 60             # Điểm từ 60 đến dưới 85: cảnh báo mức 2 (Cảnh báo vàng)
+    WARNING_LEVEL_3 = 85             # Điểm từ 85 trở lên: cảnh báo mức 3 (Cảnh báo đỏ / nguy hiểm)
+
+    YELLOW_WARNING_WINDOW = 600.0    # Cửa sổ theo dõi cảnh báo vàng: 10 phút (600 giây)
+    YELLOW_TO_RED_COUNT = 5          # 5 cảnh báo vàng trong 10 phút sẽ tương đương cảnh báo đỏ và phát âm thanh
+    WARNING_LOG_FILE = "canh_bao_log.json" # File lưu dữ liệu cảnh báo (JSON)
+    WARNING_TEXT_LOG_FILE = "canh_bao_log.txt" # File text nhật ký cảnh báo trực quan
 
     WARNING_CONFIRM_TIME = 1.0       # Điểm vượt ngưỡng liên tục 1 giây mới xác nhận cảnh báo thông thường
     WARNING_REPEAT_INTERVAL = 5.0    # Nếu nguy cơ vẫn tồn tại, nhắc lại cảnh báo sau 5 giây (thay vì 10s)

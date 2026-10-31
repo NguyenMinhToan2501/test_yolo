@@ -1,0 +1,586 @@
+[
+  {
+    "timestamp": 1793244378.207,
+    "datetime": "29/10/2026 10:26:18",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.62s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244383.963,
+    "datetime": "29/10/2026 10:26:23",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.0s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244386.259,
+    "datetime": "29/10/2026 10:26:26",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.48s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244391.218,
+    "datetime": "29/10/2026 10:26:31",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.0s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244392.627,
+    "datetime": "29/10/2026 10:26:32",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.47s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244392.627,
+    "datetime": "29/10/2026 10:26:32",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793244399.368,
+    "datetime": "29/10/2026 10:26:39",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.49s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244402.834,
+    "datetime": "29/10/2026 10:26:42",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.53s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244404.279,
+    "datetime": "29/10/2026 10:26:44",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.82s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244405.756,
+    "datetime": "29/10/2026 10:26:45",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.83s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244407.422,
+    "datetime": "29/10/2026 10:26:47",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.63s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244407.422,
+    "datetime": "29/10/2026 10:26:47",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793244413.335,
+    "datetime": "29/10/2026 10:26:53",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.90s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244414.764,
+    "datetime": "29/10/2026 10:26:54",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.82s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244416.617,
+    "datetime": "29/10/2026 10:26:56",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.91s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244418.328,
+    "datetime": "29/10/2026 10:26:58",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.43s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244418.328,
+    "datetime": "29/10/2026 10:26:58",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793244438.391,
+    "datetime": "29/10/2026 10:27:18",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.49s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793244440.599,
+    "datetime": "29/10/2026 10:27:20",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.89s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245699.238,
+    "datetime": "29/10/2026 10:48:19",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.45s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245714.018,
+    "datetime": "29/10/2026 10:48:34",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.54s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245715.592,
+    "datetime": "29/10/2026 10:48:35",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.32s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245725.976,
+    "datetime": "29/10/2026 10:48:45",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.79s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245729.317,
+    "datetime": "29/10/2026 10:48:49",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.62s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793245729.317,
+    "datetime": "29/10/2026 10:48:49",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793281097.604,
+    "datetime": "29/10/2026 20:38:17",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.0s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281103.016,
+    "datetime": "29/10/2026 20:38:23",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.70s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281134.168,
+    "datetime": "29/10/2026 20:38:54",
+    "type": "RED",
+    "score": 100,
+    "reason": "NGU GAT (1.6s)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793281140.196,
+    "datetime": "29/10/2026 20:39:00",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.1s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281143.707,
+    "datetime": "29/10/2026 20:39:03",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (1.26s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281146.935,
+    "datetime": "29/10/2026 20:39:06",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.83s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281146.935,
+    "datetime": "29/10/2026 20:39:06",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793281155.752,
+    "datetime": "29/10/2026 20:39:15",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.69s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281158.115,
+    "datetime": "29/10/2026 20:39:18",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.50s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281160.875,
+    "datetime": "29/10/2026 20:39:20",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.93s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281162.637,
+    "datetime": "29/10/2026 20:39:22",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.78s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793281162.637,
+    "datetime": "29/10/2026 20:39:22",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793282814.983,
+    "datetime": "29/10/2026 21:06:54",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.44s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282859.786,
+    "datetime": "29/10/2026 21:07:39",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (1.28s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282875.025,
+    "datetime": "29/10/2026 21:07:55",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.43s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282883.129,
+    "datetime": "29/10/2026 21:08:03",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.57s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282884.779,
+    "datetime": "29/10/2026 21:08:04",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.44s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282884.779,
+    "datetime": "29/10/2026 21:08:04",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793282888.849,
+    "datetime": "29/10/2026 21:08:08",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.44s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282889.541,
+    "datetime": "29/10/2026 21:08:09",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.35s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793282931.394,
+    "datetime": "29/10/2026 21:08:51",
+    "type": "RED",
+    "score": 100,
+    "reason": "NGU GAT (1.6s)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793282939.919,
+    "datetime": "29/10/2026 21:08:59",
+    "type": "RED",
+    "score": 100,
+    "reason": "NGU GAT (1.5s)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283245.555,
+    "datetime": "29/10/2026 21:14:05",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.1s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283264.826,
+    "datetime": "29/10/2026 21:14:24",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "NGAP SAU (3.0s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283265.477,
+    "datetime": "29/10/2026 21:14:25",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.35s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283265.477,
+    "datetime": "29/10/2026 21:14:25",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283474.625,
+    "datetime": "29/10/2026 21:17:54",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.40s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283480.723,
+    "datetime": "29/10/2026 21:18:00",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.34s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283488.9,
+    "datetime": "29/10/2026 21:18:08",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.39s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283503.352,
+    "datetime": "29/10/2026 21:18:23",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.53s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283513.926,
+    "datetime": "29/10/2026 21:18:33",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.40s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283513.926,
+    "datetime": "29/10/2026 21:18:33",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283519.19,
+    "datetime": "29/10/2026 21:18:39",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.39s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283522.416,
+    "datetime": "29/10/2026 21:18:42",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.34s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283535.197,
+    "datetime": "29/10/2026 21:18:55",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.53s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283538.651,
+    "datetime": "29/10/2026 21:18:58",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.47s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283538.651,
+    "datetime": "29/10/2026 21:18:58",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283572.352,
+    "datetime": "29/10/2026 21:19:32",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.58s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283576.437,
+    "datetime": "29/10/2026 21:19:36",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.67s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283578.924,
+    "datetime": "29/10/2026 21:19:38",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.77s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283580.254,
+    "datetime": "29/10/2026 21:19:40",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.57s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283580.254,
+    "datetime": "29/10/2026 21:19:40",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283631.975,
+    "datetime": "29/10/2026 21:20:31",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.38s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283693.589,
+    "datetime": "29/10/2026 21:21:33",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.35s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283833.084,
+    "datetime": "29/10/2026 21:23:53",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.72s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283846.706,
+    "datetime": "29/10/2026 21:24:06",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.52s)",
+    "consumed": true
+  },
+  {
+    "timestamp": 1793283901.312,
+    "datetime": "29/10/2026 21:25:01",
+    "type": "YELLOW",
+    "score": 60,
+    "reason": "CHOP MAT CHAM (0.32s)",
+    "consumed": false
+  },
+  {
+    "timestamp": 1793283901.312,
+    "datetime": "29/10/2026 21:25:01",
+    "type": "RED",
+    "score": 100,
+    "reason": "CANH BAO DO (DAT 5 LAN VANG/10P)",
+    "consumed": false
+  }
+]

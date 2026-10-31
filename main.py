@@ -169,7 +169,7 @@ if __name__ == "__main__":
                                 print("📢 CẢNH BÁO GIỌNG NÓI (1.5x): Camera không thấy khuôn mặt!")
 
             # 3. Lấy kết quả và quản lý cảnh báo nhạy bén (Responsive Alerting)
-            status, color, should_alert, violation_reason = fatigue_manager.get_status()
+            status, color, should_alert, violation_reason = fatigue_manager.get_status(current_loop_time)
 
             if is_alerting:
                 alert_elapsed = current_loop_time - alert_start_time
@@ -182,9 +182,9 @@ if __name__ == "__main__":
                     if (not fatigue_manager.is_yawning) or (alert_elapsed >= Config.YAWN_ALERT_DURATION):
                         dismiss_alert = True
                 
-                # Nếu là cảnh báo nguy cấp (ngủ gật / gục đầu): TÀI XẾ ĐÃ MỞ MẮT HOẶC NGẨNG ĐẦU LÊN
+                # Nếu là cảnh báo nguy cấp (ngủ gật / gục đầu / đỏ): TÀI XẾ ĐÃ TỈNH TÁO (MỞ MẮT, NGẬM MIỆNG, NGẨNG ĐẦU)
                 elif alert_reason_type == "EMERGENCY":
-                    if not fatigue_manager.is_active_hazard:
+                    if not fatigue_manager.is_active_hazard and not fatigue_manager.is_yawning and status != "Danger":
                         dismiss_alert = True
                 
                 # Trường hợp thông thường nếu không còn ở mức Danger
@@ -204,20 +204,21 @@ if __name__ == "__main__":
 
             else:
                 # --- ĐIỀU KIỆN 2: BẮT ĐẦU CẢNH BÁO MỚI ---
-                # Nguy cấp (ngủ gật >= 1.5s hoặc gục đầu >= 2s): BÁO ĐỘNG NGAY LẬP TỨC KHÔNG CẦN CHỜ COOLDOWN
-                can_alert = fatigue_manager.is_active_hazard or (current_loop_time - last_alert_stop_time >= Config.ALERT_COOLDOWN)
+                # Nguy cấp (ngủ gật >= 1.5s, gục đầu >= 2s hoặc Đỏ do 5 cảnh báo vàng): BÁO ĐỘNG NGAY LẬP TỨC
+                is_emergency_event = fatigue_manager.is_active_hazard or (status == "Danger")
+                can_alert = is_emergency_event or (current_loop_time - last_alert_stop_time >= Config.ALERT_COOLDOWN)
                 if should_alert and can_alert:
                     is_alerting = True
                     alert_start_time = current_loop_time
 
-                    if fatigue_manager.is_active_hazard:
+                    if fatigue_manager.is_active_hazard or status == "Danger":
                         alert_reason_type = "EMERGENCY"
-                        # Ngủ gật/gục đầu: kêu lặp để cảnh báo tức thì
+                        # Ngủ gật/gục đầu/cảnh báo đỏ: còi hú báo động
                         if HAS_PYGAME and alert_sound:
                             alert_sound.play(-1)
                     elif fatigue_manager.is_yawning:
                         alert_reason_type = "YAWN"
-                        # Ngáp: chỉ phát tiếng ngắn nhắc nhở (1 lần, hoặc tối đa 1.5s)
+                        # Ngáp thông thường: chỉ phát tiếng ngắn nhắc nhở (1 lần, hoặc tối đa 1.5s)
                         if HAS_PYGAME and alert_sound:
                             alert_sound.play(0)
                     else:
@@ -236,7 +237,7 @@ if __name__ == "__main__":
                         cv2.putText(evidence_frame, alert_text, (10, 30), 
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                         
-                        safe_reason_name = reason_text.replace(" ", "_")
+                        safe_reason_name = reason_text.replace(" ", "_").replace("/", "_").replace("(", "").replace(")", "")
                         img_path = os.path.join(EVIDENCE_DIR, f"{safe_reason_name}_{timestamp}.jpg")
                         cv2.imwrite(img_path, evidence_frame)
                         last_evidence_reason = reason_text
@@ -259,6 +260,15 @@ if __name__ == "__main__":
 
             current_time_str = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
             cv2.putText(display_frame, current_time_str, (20, 185), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+
+            # Hiển thị số lượng cảnh báo vàng trong 10 phút dựa trên file cảnh báo
+            yellow_count_10m = fatigue_manager.warning_logger.count_yellow_warnings_in_window(
+                window_seconds=Config.YELLOW_WARNING_WINDOW,
+                current_time=current_loop_time
+            )
+            yellow_ui_color = (0, 0, 255) if yellow_count_10m >= Config.YELLOW_TO_RED_COUNT else (0, 255, 255)
+            cv2.putText(display_frame, f"Canh bao vang (10p): {yellow_count_10m}/{Config.YELLOW_TO_RED_COUNT}", 
+                        (20, 215), cv2.FONT_HERSHEY_SIMPLEX, 0.55, yellow_ui_color, 1)
             
             cv2.imshow("DriveLinker Edge AI", display_frame)
 
