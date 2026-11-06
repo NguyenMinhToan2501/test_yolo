@@ -88,7 +88,7 @@ class FatigueManager:
                 reason=self.violation_reason,
                 timestamp=current_time
             )
-            print(f"🚨 [CẢNH BÁO ĐỎ] Đã đạt {count} mức cảnh báo vàng! Kích hoạt CẢNH BÁO ĐỎ và phát âm thanh.")
+            print(f"🚨 [CẢNH BÁO ĐỎ] Đã đạt {count} mức cảnh báo vàng! Phát giọng nói nhắc nhở buồn ngủ.")
 
             # Sau khi đạt 5 cảnh báo vàng: RESET BIẾN ĐẾM ĐÓ VỀ 0
             self.warning_logger.reset_yellow_counter(current_time)
@@ -363,7 +363,7 @@ class FatigueManager:
                 self.head_drop_warning_logged = True
                 self.warning_logger.log_warning(
                     warning_type="RED",
-                    score=100,
+                    score=100,          
                     reason=self.violation_reason,
                     timestamp=current_time
                 )
@@ -417,9 +417,9 @@ class FatigueManager:
         if current_time is None:
             current_time = time.time()
 
-        # Tự động giải tỏa Cảnh Báo Đỏ sau khi còi hú đủ thời gian (ALERT_MAX_DURATION) và tài xế đã tỉnh táo
+        # Tự động giải tỏa Cảnh Báo Đỏ sau khi còi hú đủ thời gian (ALERT_MAX_DURATION) hoặc đọc xong giọng nói và tài xế đã tỉnh táo
         if self.is_yellow_red_alert:
-            alert_max_dur = getattr(Config, 'ALERT_MAX_DURATION', 3.0)
+            alert_max_dur = getattr(Config, 'DROWSY_VOICE_DURATION', getattr(Config, 'ALERT_MAX_DURATION', 3.0))
             if (current_time - self.yellow_red_alert_start_time) >= alert_max_dur:
                 if not self.is_active_hazard and not self.is_yawning:
                     self.is_yellow_red_alert = False

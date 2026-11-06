@@ -290,6 +290,9 @@ def test_5_yellow_warnings_triggers_red_alert_and_resets_counter(temp_warning_lo
     current_yellow_count = temp_warning_logger.count_yellow_warnings_in_window(window_seconds=600.0, current_time=t_5 + 3.1)
     assert current_yellow_count == 0  # Biến đếm đã reset về 0 hoàn hảo!
 
+    # ĐÁNH GIÁ 3: Cờ is_yellow_red_alert được kích hoạt để phát giọng nói cảnh báo buồn ngủ
+    assert fm.is_yellow_red_alert is True
+
 
 def test_slow_blink_holds_warning_and_normal_blink_clears(temp_warning_logger):
     """KIỂM TRA: Chớp mắt chậm giữ 60đ cảnh báo vàng trong 2s, chớp mắt bình thường lập tức giải tỏa về 0đ."""

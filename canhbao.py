@@ -188,6 +188,12 @@ def generate_sound():
         tts = gTTS(van_ban, lang='vi')
         tts.save("am_thanh_canh_bao.wav")
         print("Thành công! Đã tạo file am_thanh_canh_bao.wav")
+
+        # Tạo file âm thanh cảnh báo 5 lần vàng
+        van_ban_buon_ngu = "Cảnh báo! Tài xế có dấu hiệu buồn ngủ, vui lòng giữ tỉnh táo!"
+        tts2 = gTTS(van_ban_buon_ngu, lang='vi')
+        tts2.save("canh_bao_buon_ngu.mp3")
+        print("Thành công! Đã tạo file canh_bao_buon_ngu.mp3")
     except Exception as e:
         print(f"Không thể tạo âm thanh gTTS: {e}")
 

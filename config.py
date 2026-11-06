@@ -120,6 +120,8 @@ class Config:
     YELLOW_TO_RED_COUNT = 5          # 5 cảnh báo vàng trong 10 phút sẽ tương đương cảnh báo đỏ và phát âm thanh
     WARNING_LOG_FILE = "canh_bao_log.json" # File lưu dữ liệu cảnh báo (JSON)
     WARNING_TEXT_LOG_FILE = "canh_bao_log.txt" # File text nhật ký cảnh báo trực quan
+    DROWSY_VOICE_FILE = "canh_bao_buon_ngu.mp3" # File âm thanh giọng nói khi đạt 5 cảnh báo vàng
+    DROWSY_VOICE_DURATION = 6.5      # Thời lượng phát giọng nói nhắc nhở buồn ngủ (sau 5 cảnh báo vàng)
 
     WARNING_CONFIRM_TIME = 1.0       # Điểm vượt ngưỡng liên tục 1 giây mới xác nhận cảnh báo thông thường
     WARNING_REPEAT_INTERVAL = 5.0    # Nếu nguy cơ vẫn tồn tại, nhắc lại cảnh báo sau 5 giây (thay vì 10s)

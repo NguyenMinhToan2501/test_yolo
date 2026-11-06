@@ -42,12 +42,21 @@ if __name__ == "__main__":
             face_missing_sound = pygame.mixer.Sound('canh_bao_mat_mat.mp3')
         except Exception:
             face_missing_sound = None
+
+        # Nạp âm thanh giọng nói cảnh báo tích lũy 5 cảnh báo vàng
+        try:
+            drowsy_voice_file = getattr(Config, 'DROWSY_VOICE_FILE', 'canh_bao_buon_ngu.mp3')
+            drowsy_voice_sound = pygame.mixer.Sound(drowsy_voice_file)
+        except Exception:
+            drowsy_voice_sound = None
+
         HAS_PYGAME = True
     except (ImportError, FileNotFoundError):
         print("Cảnh báo: Không tìm thấy pygame hoặc file âm thanh.")
         HAS_PYGAME = False
         alert_sound = None
         face_missing_sound = None
+        drowsy_voice_sound = None
 
     # khởi tạo mô hình AI
     model = YOLO('runs/detect/train/weights/best.pt')
@@ -174,7 +183,16 @@ if __name__ == "__main__":
             if is_alerting:
                 alert_elapsed = current_loop_time - alert_start_time
 
-                # --- ĐIỀU KIỆN 1: TỰ ĐỘNG TẮT CÒI NGAY KHI GIẢI TỎA NGUY HIỂM ---
+                # Nếu đang phát giọng nói 5 cảnh báo vàng mà tài xế đột nhiên ngủ gật/gục đầu -> ưu tiên còi hú khẩn cấp
+                if alert_reason_type == "YELLOW_RED_VOICE" and fatigue_manager.is_active_hazard:
+                    if HAS_PYGAME and drowsy_voice_sound:
+                        drowsy_voice_sound.stop()
+                    alert_reason_type = "EMERGENCY"
+                    alert_start_time = current_loop_time
+                    if HAS_PYGAME and alert_sound:
+                        alert_sound.play(-1)
+
+                # --- ĐIỀU KIỆN 1: TỰ ĐỘNG TẮT CÒI / GIỌNG NÓI KHI GIẢI TỎA NGUY HIỂM ---
                 dismiss_alert = False
                 
                 # Nếu là cảnh báo ngáp: tài xế đã ngậm miệng lại hoặc còi đã kêu đủ 1.5s
@@ -182,6 +200,12 @@ if __name__ == "__main__":
                     if (not fatigue_manager.is_yawning) or (alert_elapsed >= Config.YAWN_ALERT_DURATION):
                         dismiss_alert = True
                 
+                # Nếu là cảnh báo giọng nói 5 cảnh báo vàng: kết thúc khi đọc xong hoặc tài xế đã tỉnh táo
+                elif alert_reason_type == "YELLOW_RED_VOICE":
+                    voice_dur = getattr(Config, 'DROWSY_VOICE_DURATION', 6.5)
+                    if alert_elapsed >= voice_dur or (not fatigue_manager.is_yellow_red_alert and not fatigue_manager.is_active_hazard):
+                        dismiss_alert = True
+
                 # Nếu là cảnh báo nguy cấp (ngủ gật / gục đầu / đỏ): TÀI XẾ ĐÃ TỈNH TÁO (MỞ MẮT, NGẬM MIỆNG, NGẨNG ĐẦU)
                 elif alert_reason_type == "EMERGENCY":
                     if not fatigue_manager.is_active_hazard and not fatigue_manager.is_yawning and status != "Danger":
@@ -191,31 +215,44 @@ if __name__ == "__main__":
                 elif not should_alert:
                     dismiss_alert = True
 
-                # Hết thời gian cảnh báo tối đa mỗi đợt (ALERT_MAX_DURATION = 3s thay vì 10s)
-                if alert_elapsed >= Config.ALERT_MAX_DURATION:
+                # Hết thời gian cảnh báo tối đa mỗi đợt cho còi hú (ALERT_MAX_DURATION = 3s)
+                if alert_reason_type == "EMERGENCY" and alert_elapsed >= Config.ALERT_MAX_DURATION:
                     dismiss_alert = True
 
                 if dismiss_alert:
-                    if HAS_PYGAME and alert_sound:
-                        alert_sound.stop()
+                    if HAS_PYGAME:
+                        if alert_sound:
+                            alert_sound.stop()
+                        if drowsy_voice_sound:
+                            drowsy_voice_sound.stop()
                     is_alerting = False
                     last_alert_stop_time = current_loop_time
                     print("✅ Cảnh báo âm thanh đã dừng (Tài xế đã mở mắt / ngậm miệng / ngẩng đầu).")
 
             else:
                 # --- ĐIỀU KIỆN 2: BẮT ĐẦU CẢNH BÁO MỚI ---
-                # Nguy cấp (ngủ gật >= 1.5s, gục đầu >= 2s hoặc Đỏ do 5 cảnh báo vàng): BÁO ĐỘNG NGAY LẬP TỨC
+                # Nguy cấp (ngủ gật >= 1.5s, gục đầu >= 0.7s hoặc Đỏ do 5 cảnh báo vàng): BÁO ĐỘNG NGAY LẬP TỨC
                 is_emergency_event = fatigue_manager.is_active_hazard or (status == "Danger")
                 can_alert = is_emergency_event or (current_loop_time - last_alert_stop_time >= Config.ALERT_COOLDOWN)
                 if should_alert and can_alert:
                     is_alerting = True
                     alert_start_time = current_loop_time
 
-                    if fatigue_manager.is_active_hazard or status == "Danger":
+                    # 1. Nếu do tích lũy 5 cảnh báo vàng -> Đọc thông báo giọng nói tiếng Việt
+                    if fatigue_manager.is_yellow_red_alert:
+                        alert_reason_type = "YELLOW_RED_VOICE"
+                        if HAS_PYGAME and drowsy_voice_sound:
+                            drowsy_voice_sound.play(0)
+                            print("📢 CẢNH BÁO GIỌNG NÓI (5 Cảnh báo vàng): Cảnh báo! Tài xế có dấu hiệu buồn ngủ, vui lòng giữ tỉnh táo!")
+                        elif HAS_PYGAME and alert_sound:
+                            alert_sound.play(-1) # Fallback nếu không có file mp3
+
+                    # 2. Nếu do ngủ gật / gục đầu trực tiếp -> Còi hú báo động khẩn cấp
+                    elif fatigue_manager.is_active_hazard or status == "Danger":
                         alert_reason_type = "EMERGENCY"
-                        # Ngủ gật/gục đầu/cảnh báo đỏ: còi hú báo động
                         if HAS_PYGAME and alert_sound:
                             alert_sound.play(-1)
+
                     elif fatigue_manager.is_yawning:
                         alert_reason_type = "YAWN"
                         # Ngáp thông thường: chỉ phát tiếng ngắn nhắc nhở (1 lần, hoặc tối đa 1.5s)
@@ -284,6 +321,7 @@ if __name__ == "__main__":
             try:
                 if alert_sound: alert_sound.stop()
                 if face_missing_sound: face_missing_sound.stop()
+                if drowsy_voice_sound: drowsy_voice_sound.stop()
                 pygame.mixer.quit()
             except Exception:
                 pass
